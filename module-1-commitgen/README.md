@@ -55,11 +55,12 @@ npm run dev        # same, but re-runs on file changes
 
 ### Options
 
-| Flag               | Description                                                                     |
-| ------------------ | ------------------------------------------------------------------------------- |
-| `-C, --cwd <path>` | Run as if `commitgen` was started in `<path>` instead of the current directory. |
-| `-V, --version`    | Print the installed version.                                                    |
-| `-h, --help`       | Show CLI help.                                                                  |
+| Flag               | Description                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `-C, --cwd <path>` | Run as if `commitgen` was started in `<path>` instead of the current directory.                                |
+| `--dry-run`        | Print the generated commit message and exit — skips the interactive menu entirely and never runs `git commit`. |
+| `-V, --version`    | Print the installed version.                                                                                   |
+| `-h, --help`       | Show CLI help.                                                                                                 |
 
 ### What it validates before doing anything
 
