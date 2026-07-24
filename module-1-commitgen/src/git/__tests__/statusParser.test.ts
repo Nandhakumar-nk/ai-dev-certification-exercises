@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseNameStatus } from "./statusParser.js";
+import { parseNameStatus } from "../statusParser.js";
 
 describe("parseNameStatus", () => {
   it("parses added, modified, and deleted files", () => {

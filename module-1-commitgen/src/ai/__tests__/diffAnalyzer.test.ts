@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { StagedChanges, StagedFile, StagedFileStatus } from "../git/types.js";
-import { analyzeDiff } from "./diffAnalyzer.js";
+import type { StagedChanges, StagedFile, StagedFileStatus } from "../../git/types.js";
+import { analyzeDiff } from "../diffAnalyzer.js";
 
 function file(path: string, status: StagedFileStatus): StagedFile {
   return { path, status };

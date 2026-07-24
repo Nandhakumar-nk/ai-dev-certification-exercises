@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCommitMessage, isValidConventionalCommit } from "./conventionalCommit.js";
+import { formatCommitMessage, isValidConventionalCommit } from "../conventionalCommit.js";
 
 describe("formatCommitMessage", () => {
   it("formats a header-only message without a scope", () => {

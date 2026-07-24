@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { GitClient, StagedChanges } from "../git/types.js";
-import type { CommitAction, Prompter } from "../prompts/types.js";
-import { CommitService } from "./commitService.js";
-import { CommitWorkflow, type WorkflowReporter } from "./commitWorkflow.js";
+import type { GitClient, StagedChanges } from "../../git/types.js";
+import type { CommitAction, Prompter } from "../../prompts/types.js";
+import { CommitService } from "../commitService.js";
+import { CommitWorkflow, type WorkflowReporter } from "../commitWorkflow.js";
 
 const STAGED_CHANGES: StagedChanges = {
   diff: "",

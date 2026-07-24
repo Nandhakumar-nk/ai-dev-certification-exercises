@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import type { GitClient, StagedChanges } from "../git/types.js";
-import { NoStagedChangesError } from "../utils/errors.js";
-import { CommitService } from "./commitService.js";
+import type { GitClient, StagedChanges } from "../../git/types.js";
+import { NoStagedChangesError } from "../../utils/errors.js";
+import { CommitService } from "../commitService.js";
 
 function fakeGitClient(overrides: Partial<GitClient> = {}): GitClient {
   return {

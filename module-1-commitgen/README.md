@@ -82,16 +82,21 @@ Since there's no LLM in the loop, `commitgen` relies on transparent, testable he
 
 ```
 src/
-  ai/         Diff analysis heuristics and message wording (no I/O)
-  cli/        Commander wiring + chalk/ora presentation (no business logic)
-  commit/     Orchestrates git + ai; Conventional Commit formatting/validation
-  git/        simple-git wrapper behind a small GitClient interface
-  prompts/    @inquirer/prompts wrapper behind a small Prompter interface
-  utils/      Custom error types, string helpers
-  index.ts    Entry point
+  ai/               Diff analysis heuristics and message wording (no I/O)
+    __tests__/      Unit tests for this module
+  cli/              Commander wiring + chalk/ora presentation (no business logic)
+  commit/           Orchestrates git + ai; Conventional Commit formatting/validation
+    __tests__/      Unit tests for this module
+  git/              simple-git wrapper behind a small GitClient interface
+    __tests__/      Unit tests for this module
+  prompts/          @inquirer/prompts wrapper behind a small Prompter interface
+  utils/            Custom error types, string helpers
+  index.ts          Entry point
 ```
 
 Each layer depends only on interfaces from the layers below it (`CommitWorkflow` knows about `GitClient`/`Prompter` as abstractions, never `simple-git` or `@inquirer/prompts` directly), which is what makes the whole flow unit-testable without a real terminal or repository.
+
+Tests live in a `__tests__/` folder next to the code they cover, rather than mixed in alongside the implementation files — e.g. `src/ai/diffAnalyzer.ts` is tested by `src/ai/__tests__/diffAnalyzer.test.ts`. `npm run build` compiles from `tsconfig.build.json`, which excludes `**/*.test.ts`, so `dist/` never ships test code.
 
 ## Scripts
 

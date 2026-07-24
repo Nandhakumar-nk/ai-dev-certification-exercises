@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CommitMessageGenerator } from "./commitMessageGenerator.js";
-import type { DiffInsights } from "./types.js";
+import { CommitMessageGenerator } from "../commitMessageGenerator.js";
+import type { DiffInsights } from "../types.js";
 
 function insights(overrides: Partial<DiffInsights>): DiffInsights {
   return {

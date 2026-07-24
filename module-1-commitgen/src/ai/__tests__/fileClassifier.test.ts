@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyFile, extractScope } from "./fileClassifier.js";
+import { classifyFile, extractScope } from "../fileClassifier.js";
 
 describe("classifyFile", () => {
   it.each([
