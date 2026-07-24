@@ -15,6 +15,7 @@ program
   .command("add")
   .description("Add a new task")
   .argument("<title>", "Task title")
+  .option("-p, --priority <priority>", "Priority: LOW, MEDIUM, or HIGH", "MEDIUM")
   .action(handleAdd);
 
 program
