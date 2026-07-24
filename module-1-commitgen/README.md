@@ -1,45 +1,108 @@
-# Module 1: CommitGen — Challenge Exercise
+# commitgen
 
-**Challenge:** Build a git commit message generator using Claude Code and CRISP.
+A CLI that reads your **staged** Git changes and drafts a [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) message for you — no network calls, no API keys, just deterministic analysis of the diff. Accept it, edit it, ask for another take, or bail out, all before anything touches your repository.
 
-## Setup
+```
+$ commitgen
+✔ Reading staged changes...
+
+Suggested commit message:
+feat(auth): add auth module
+
+- Add src/auth/passwordReset.ts
+- Update src/auth/login.ts
+
+? What would you like to do with this commit message?
+❯ Accept
+  Edit manually
+  Regenerate
+  Cancel
+```
+
+## Installation
+
+Requires Node.js 18+ and Git.
 
 ```bash
 npm install
-claude
+npm run build
+npm link   # optional: exposes the `commitgen` command globally
 ```
 
-## Your Task
-
-Write a **CRISP prompt** and use Claude Code to build a CLI tool that:
-
-1. Reads `git diff --staged` to see staged changes
-2. Generates a [Conventional Commit](https://www.conventionalcommits.org/) message
-3. Lets you accept, edit, or regenerate
-4. Commits with the final message
-
-Follow the exercise instructions in the certification platform (Module 1 → Unit 3 → "Challenge: Build a Git Commit Message Generator").
-
-## Test It
+During development you can skip the build step and run the TypeScript source directly:
 
 ```bash
-# Make a change to this project
-echo "# CommitGen" > NOTES.md
-git add NOTES.md
-
-# Run your tool
-npx tsx src/index.ts
-# Should suggest: "docs: add project notes"
+npm start          # runs src/index.ts once via tsx
+npm run dev        # same, but re-runs on file changes
 ```
 
-## Conventional Commits Format
+## Usage
+
+1. Stage the changes you want to commit:
+   ```bash
+   git add src/auth/login.ts
+   ```
+2. Run the tool from anywhere inside the repository:
+   ```bash
+   commitgen
+   # or, without linking: npx tsx src/index.ts
+   ```
+3. Choose what to do with the suggested message:
+   - **Accept** – runs `git commit -m "<message>"` immediately.
+   - **Edit manually** – opens the message in your `$EDITOR` (falls back to `vi`) so you can rewrite it freely; the edited text becomes the final message.
+   - **Regenerate** – re-derives the message with an alternate phrasing, without re-reading the diff from disk.
+   - **Cancel** – exits without committing or modifying the working tree.
+
+### Options
+
+| Flag               | Description                                                                     |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `-C, --cwd <path>` | Run as if `commitgen` was started in `<path>` instead of the current directory. |
+| `-V, --version`    | Print the installed version.                                                    |
+| `-h, --help`       | Show CLI help.                                                                  |
+
+### What it validates before doing anything
+
+- Git is installed and reachable on `PATH`.
+- The current directory is inside a Git repository.
+- There is at least one staged file (`git diff --staged` is non-empty).
+
+Each failure prints a clear, colored message and exits with a non-zero code — the tool never modifies the working tree except by creating the final commit you explicitly accept.
+
+## How the message is generated
+
+Since there's no LLM in the loop, `commitgen` relies on transparent, testable heuristics over the staged diff:
+
+1. **Type** – inferred from the changed files' categories (all tests → `test`, all docs → `docs`, all CI config → `ci`, all lockfiles/build config → `build`, all stylesheets/lint config → `style`), or, for regular source changes, from keywords in the diff (`fix`/`bug` → `fix`, `optimize`/`cache` → `perf`, `refactor`/`rename` → `refactor`), falling back to the shape of the change (pure additions → `feat`, pure deletions → `chore`).
+2. **Scope** – the single directory segment shared by every changed file (e.g. `src/auth/login.ts` + `src/auth/session.ts` → `auth`); omitted when files span multiple modules.
+3. **Subject** – an imperative phrase built from a verb (type-specific, with alternates used on "Regenerate") and either the humanized file name (single-file changes), the scope (multi-file changes), or a file count.
+4. **Body** – a bulleted list of the added/modified/deleted/renamed files, included whenever more than one file changed.
+
+## Project structure
 
 ```
-type(scope): description
-
-Types: feat, fix, docs, style, refactor, test, chore
-Examples:
-  feat(auth): add login page with Google OAuth
-  fix(api): handle null response from weather service
-  docs: update README with setup instructions
+src/
+  ai/         Diff analysis heuristics and message wording (no I/O)
+  cli/        Commander wiring + chalk/ora presentation (no business logic)
+  commit/     Orchestrates git + ai; Conventional Commit formatting/validation
+  git/        simple-git wrapper behind a small GitClient interface
+  prompts/    @inquirer/prompts wrapper behind a small Prompter interface
+  utils/      Custom error types, string helpers
+  index.ts    Entry point
 ```
+
+Each layer depends only on interfaces from the layers below it (`CommitWorkflow` knows about `GitClient`/`Prompter` as abstractions, never `simple-git` or `@inquirer/prompts` directly), which is what makes the whole flow unit-testable without a real terminal or repository.
+
+## Scripts
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # vitest run
+npm run lint         # eslint .
+npm run format       # prettier --write .
+npm run build        # compile to dist/
+```
+
+## Testing
+
+Unit tests cover the diff-analysis heuristics, message generation (including the regenerate variants and body truncation), Conventional Commit formatting/validation, and the full accept/edit/regenerate/cancel workflow (driven against a fake `GitClient` and `Prompter`, so no real Git repo or terminal is required).
