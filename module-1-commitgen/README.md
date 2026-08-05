@@ -112,3 +112,7 @@ npm run build        # compile to dist/
 ## Testing
 
 Unit tests cover the diff-analysis heuristics, message generation (including the regenerate variants and body truncation), Conventional Commit formatting/validation, and the full accept/edit/regenerate/cancel workflow (driven against a fake `GitClient` and `Prompter`, so no real Git repo or terminal is required).
+
+## change
+
+Test change in README.md file
