@@ -1,0 +1,22 @@
+import { SCHEDULED_WORKFLOW_TRIGGERS } from "@/lib/zod/schemas/workflows";
+import { Workflow } from "@prisma/client";
+import { WorkflowAttributeKey } from "./attribute-definitions";
+import { parseWorkflowConfig } from "./parse-workflow-config";
+
+export const isCurrencyAttribute = (activity: WorkflowAttributeKey) =>
+  activity === "totalCommissions" || activity === "totalSaleAmount";
+
+export const isScheduledWorkflow = (workflow: Workflow) => {
+  const { condition } = parseWorkflowConfig(workflow);
+
+  const shouldSchedule = SCHEDULED_WORKFLOW_TRIGGERS.includes(workflow.trigger);
+
+  if (
+    !shouldSchedule ||
+    (shouldSchedule && condition.attribute === "partnerJoined") // for partnerJoined, we execute immediately on partner enrollment
+  ) {
+    return false;
+  }
+
+  return true;
+};
