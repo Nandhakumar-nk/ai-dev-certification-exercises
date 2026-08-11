@@ -4,10 +4,23 @@ import path from "path";
 const DB_PATH = path.join(__dirname, "..", "debugger.db");
 
 let db: Database.Database;
+let queryCount = 0;
+
+export function resetQueryCount() {
+  queryCount = 0;
+}
+
+export function getQueryCount() {
+  return queryCount;
+}
 
 export function getDb(): Database.Database {
   if (!db) {
-    db = new Database(DB_PATH);
+    db = new Database(DB_PATH, {
+      verbose: () => {
+        queryCount++;
+      },
+    });
     db.pragma("journal_mode = WAL");
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -79,8 +92,8 @@ export function getUserWithPostCount(userId: number) {
 
   // Count posts for this user
   const countResult = db
-    .prepare("SELECT COUNT(*) as count FROM posts")
-    .get() as any;
+    .prepare("SELECT COUNT(*) as count FROM posts WHERE authorId = ?")
+    .get(userId) as any;
 
   return {
     ...user,
@@ -88,24 +101,25 @@ export function getUserWithPostCount(userId: number) {
   };
 }
 
-// BUG #3: N+1 performance — this is slow with many posts
 export function getAllPostsWithAuthors() {
   const db = getDb();
-  const posts = db.prepare("SELECT * FROM posts ORDER BY createdAt DESC").all() as any[];
+  const rows = db
+    .prepare(
+      `
+      SELECT posts.*, users.id as authorUserId, users.name as authorName
+      FROM posts
+      LEFT JOIN users ON posts.authorId = users.id
+      ORDER BY posts.createdAt DESC
+    `
+    )
+    .all() as any[];
 
-  // Get author for each post individually
-  return posts.map((post) => {
-    const author = db
-      .prepare("SELECT * FROM users WHERE id = ?")
-      .get(post.authorId) as any;
-    return {
-      ...post,
-      author: author ? { id: author.id, name: author.name } : null,
-    };
-  });
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    authorId: row.authorId,
+    createdAt: row.createdAt,
+    author: row.authorUserId ? { id: row.authorUserId, name: row.authorName } : null,
+  }));
 }
-
-// Fixed version hint (don't peek until you've found the bugs!)
-// getAllPostsWithAuthors could use a JOIN:
-// SELECT p.*, u.id as authorId, u.name as authorName
-// FROM posts p LEFT JOIN users u ON p.authorId = u.id

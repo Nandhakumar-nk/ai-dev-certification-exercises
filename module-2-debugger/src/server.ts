@@ -7,6 +7,8 @@ import {
   createPost,
   getUserWithPostCount,
   getAllPostsWithAuthors,
+  resetQueryCount,
+  getQueryCount,
 } from "./db";
 
 const app = express();
@@ -38,7 +40,7 @@ app.post("/api/users", (req, res) => {
   }
 
   try {
-    const user = createUser(name, undefined as any);
+    const user = createUser(name, email);
     res.status(201).json(user);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -62,12 +64,15 @@ app.get("/api/posts", (_req, res) => {
   res.json(posts);
 });
 
-// BUG #3 surfaces here: slow with many posts
 app.get("/api/posts/feed", (_req, res) => {
+  resetQueryCount();
   const start = Date.now();
   const posts = getAllPostsWithAuthors();
   const duration = Date.now() - start;
-  res.json({ posts, meta: { count: posts.length, durationMs: duration } });
+  res.json({
+    posts,
+    meta: { count: posts.length, durationMs: duration, queryCount: getQueryCount() },
+  });
 });
 
 app.post("/api/posts", (req, res) => {
