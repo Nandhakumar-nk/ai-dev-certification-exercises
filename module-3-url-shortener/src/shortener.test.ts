@@ -75,6 +75,22 @@ describe("idempotency", () => {
   });
 });
 
+describe("configurable code length", () => {
+  it("returns a code of the requested length for a new URL", () => {
+    const code = shorten("https://example.com/custom-length", 10);
+    expect(code.length).toBe(10);
+    expect(code).toMatch(/^[A-Za-z0-9]{10}$/);
+  });
+
+  it("still returns the original code length when re-shortening an already-shortened URL with a different length", () => {
+    const url = "https://example.com/idempotent-length";
+    const originalCode = shorten(url);
+    const secondCode = shorten(url, 10);
+    expect(secondCode).toBe(originalCode);
+    expect(secondCode.length).toBe(6);
+  });
+});
+
 describe("edge cases", () => {
   it("throws on an empty string", () => {
     expect(() => shorten("")).toThrow();
