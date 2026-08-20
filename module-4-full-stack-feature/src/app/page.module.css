@@ -90,6 +90,35 @@
   color: var(--text-secondary);
 }
 
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.comment p {
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+.comment time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: #c22;
+  font-size: 14px;
+}
+
 @media (prefers-color-scheme: dark) {
   .page {
     --border: #2a2a2a;

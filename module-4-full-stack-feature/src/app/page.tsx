@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { NewPostForm } from "./new-post-form";
 import styles from "./page.module.css";
@@ -20,7 +21,9 @@ export default async function Home() {
           <ul className={styles.list}>
             {posts.map((post) => (
               <li key={post.id} className={styles.post}>
-                <h2>{post.title}</h2>
+                <h2>
+                  <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                </h2>
                 <p>{post.body}</p>
                 <time dateTime={post.createdAt.toISOString()}>
                   {post.createdAt.toLocaleString()}
