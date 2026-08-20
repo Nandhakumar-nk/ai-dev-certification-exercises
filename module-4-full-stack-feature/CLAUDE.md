@@ -15,9 +15,10 @@ npm run start                 # run production build
 npm run lint                   # ESLint (flat config: next/core-web-vitals + next/typescript)
 npx prisma studio             # browse/edit SQLite data
 npx prisma migrate dev --name <name>   # create a migration after editing prisma/schema.prisma
+npm test                        # Vitest — applies migrations to test.db, then runs vitest run
 ```
 
-There is no test script or test framework configured in this project (no Jest/Vitest, no test files) — don't assume one exists.
+Tests use Vitest (`vitest.config.mts`, Node environment). `npm test` runs `prisma migrate deploy` against a dedicated `test.db` (gitignored, isolated from the dev `dev.db`) before running the suite, so test runs never touch dev data. Route Handler tests call the exported `GET`/`POST` functions directly with a real `Request` and a `{ params: Promise.resolve({ id }) }` context — no HTTP server involved — against the real `prisma` singleton. See `src/app/api/posts/[id]/comments/route.test.ts` for the pattern.
 
 ## Architecture
 
