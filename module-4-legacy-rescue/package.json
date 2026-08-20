@@ -5,6 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "echo \"No tests yet — that's YOUR job in Step 2!\" && exit 1"
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
   }
 }
