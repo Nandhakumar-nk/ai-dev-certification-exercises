@@ -1,56 +1,53 @@
 // analyzer.js — analyzes text files for word frequency
-// written 2019, never updated, no error handling worth mentioning
 
-var utils = require('./utils')
+const utils = require('./utils')
 
-function analyzeFile(filepath, callback) {
-  utils.readFileContent(filepath, function(err, content) {
-    if (err) {
-      callback(err)
-      return
-    }
-    var words = utils.countWords(content)
-    var sorted = utils.sortByCount(words)
-    var stats = {
-      totalWords: 0,
-      uniqueWords: Object.keys(words).length,
-      topWords: sorted.slice(0, 10),
-      filepath: filepath
-    }
-    // count total words (yes this is redundant, legacy code...)
-    for (var word in words) {
-      stats.totalWords = stats.totalWords + words[word]
-    }
-    callback(null, stats)
+function readFileContentAsync(filepath) {
+  return new Promise(function(resolve, reject) {
+    utils.readFileContent(filepath, function(err, content) {
+      if (err) reject(err)
+      else resolve(content)
+    })
   })
 }
 
-function analyzeMultiple(filepaths, callback) {
-  var results = []
-  var completed = 0
-  var hasError = false
+async function analyzeFileAsync(filepath) {
+  const content = await readFileContentAsync(filepath)
+  const words = utils.countWords(content)
+  const sorted = utils.sortByCount(words)
+  const stats = {
+    totalWords: 0,
+    uniqueWords: Object.keys(words).length,
+    topWords: sorted.slice(0, 10),
+    filepath: filepath
+  }
+  // count total words (yes this is redundant, legacy code...)
+  for (const word in words) {
+    stats.totalWords = stats.totalWords + words[word]
+  }
+  return stats
+}
 
+async function analyzeFile(filepath, callback) {
+  try {
+    const stats = await analyzeFileAsync(filepath)
+    callback(null, stats)
+  } catch (err) {
+    callback(err)
+  }
+}
+
+async function analyzeMultiple(filepaths, callback) {
   if (filepaths.length === 0) {
     callback(null, [])
     return
   }
 
-  for (var i = 0; i < filepaths.length; i++) {
-    ;(function(index) {
-      analyzeFile(filepaths[index], function(err, stats) {
-        if (hasError) return
-        if (err) {
-          hasError = true
-          callback(err)
-          return
-        }
-        results[index] = stats
-        completed++
-        if (completed === filepaths.length) {
-          callback(null, results)
-        }
-      })
-    })(i)
+  try {
+    const results = await Promise.all(filepaths.map(analyzeFileAsync))
+    callback(null, results)
+  } catch (err) {
+    callback(err)
   }
 }
 
