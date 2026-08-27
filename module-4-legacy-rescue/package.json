@@ -4,10 +4,15 @@
   "description": "Legacy Code Rescue Exercise - Understand, Test, Refactor, Verify",
   "main": "src/server.js",
   "scripts": {
+    "build": "tsc",
+    "prestart": "npm run build",
     "start": "node src/server.js",
+    "pretest": "npm run build",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^26.4.0",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   }
 }

@@ -1,19 +1,21 @@
-// utils.js — helper functions (no docs, inconsistent style, var everywhere)
+// utils.js — helper functions
 
-const fs = require('fs')
+import * as fs from 'fs'
 
-async function readFileContent(path, cb) {
+type ReadFileCallback = (err: NodeJS.ErrnoException | null, data?: string) => void
+
+async function readFileContent(path: string, cb: ReadFileCallback): Promise<void> {
   try {
     const data = await fs.promises.readFile(path, 'utf8')
     cb(null, data)
   } catch (err) {
-    cb(err)
+    cb(err as NodeJS.ErrnoException)
   }
 }
 
-function countWords(text) {
+function countWords(text: string): Record<string, number> {
   const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(function(w) { return w.length > 0 })
-  const counts = {}
+  const counts: Record<string, number> = {}
   for (let i = 0; i < words.length; i++) {
     const w = words[i]
     if (counts[w]) {
@@ -25,8 +27,8 @@ function countWords(text) {
   return counts
 }
 
-function sortByCount(wordCounts) {
-  const entries = []
+function sortByCount(wordCounts: Record<string, number>): [string, number][] {
+  const entries: [string, number][] = []
   for (const word in wordCounts) {
     entries.push([word, wordCounts[word]])
   }
@@ -34,7 +36,7 @@ function sortByCount(wordCounts) {
   return entries
 }
 
-function formatResults(sorted, limit) {
+function formatResults(sorted: [string, number][], limit?: number): string {
   let result = ''
   const max = limit || 10
   for (let i = 0; i < Math.min(sorted.length, max); i++) {
@@ -43,9 +45,4 @@ function formatResults(sorted, limit) {
   return result
 }
 
-module.exports = {
-  readFileContent: readFileContent,
-  countWords: countWords,
-  sortByCount: sortByCount,
-  formatResults: formatResults
-}
+export { readFileContent, countWords, sortByCount, formatResults }
