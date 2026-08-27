@@ -2,7 +2,48 @@
 // Do not "fix" anything here; these tests exist so refactors can be checked against them.
 
 import { describe, it, expect } from 'vitest'
-const { countWords, sortByCount, formatResults } = require('./utils')
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
+const { readFileContent, countWords, sortByCount, formatResults } = require('./utils')
+
+describe('readFileContent', () => {
+  it('reads an existing file and calls back with its content', () => {
+    const filePath = path.join(os.tmpdir(), `utils-test-${Date.now()}.txt`)
+    fs.writeFileSync(filePath, 'hello from disk')
+
+    return new Promise((resolve, reject) => {
+      readFileContent(filePath, (err, content) => {
+        try {
+          expect(err).toBeNull()
+          expect(content).toBe('hello from disk')
+          resolve()
+        } catch (assertionError) {
+          reject(assertionError)
+        } finally {
+          fs.unlinkSync(filePath)
+        }
+      })
+    })
+  })
+
+  it('calls back with an ENOENT error for a missing file (no throw)', () => {
+    const missingPath = path.join(os.tmpdir(), `utils-test-missing-${Date.now()}.txt`)
+
+    return new Promise((resolve, reject) => {
+      readFileContent(missingPath, (err, content) => {
+        try {
+          expect(err).toBeTruthy()
+          expect(err.code).toBe('ENOENT')
+          expect(content).toBeUndefined()
+          resolve()
+        } catch (assertionError) {
+          reject(assertionError)
+        }
+      })
+    })
+  })
+})
 
 describe('countWords', () => {
   it('counts word occurrences case-insensitively', () => {
