@@ -8,6 +8,16 @@ var utils = require('./utils')
 var path = require('path')
 
 var PORT = 3457
+var FILES_DIR = path.join(__dirname, '..')
+
+function resolveSafePath(userPath) {
+  var resolved = path.resolve(FILES_DIR, userPath)
+  var rel = path.relative(FILES_DIR, resolved)
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    return null
+  }
+  return resolved
+}
 
 var server = http.createServer(function(req, res) {
   var parsed = url.parse(req.url, true)
@@ -26,8 +36,12 @@ var server = http.createServer(function(req, res) {
       return
     }
 
-    // security issue: no path validation!
-    var fullPath = path.resolve(filepath)
+    var fullPath = resolveSafePath(filepath)
+    if (!fullPath) {
+      res.writeHead(400, {'Content-Type': 'application/json'})
+      res.end(JSON.stringify({error: 'invalid file path'}))
+      return
+    }
 
     analyzer.analyzeFile(fullPath, function(err, stats) {
       if (err) {
@@ -72,7 +86,14 @@ var server = http.createServer(function(req, res) {
       return
     }
 
-    analyzer.analyzeFile(path.resolve(file), function(err, stats) {
+    var fullFormatPath = resolveSafePath(file)
+    if (!fullFormatPath) {
+      res.writeHead(400, {'Content-Type': 'text/plain'})
+      res.end('invalid file path')
+      return
+    }
+
+    analyzer.analyzeFile(fullFormatPath, function(err, stats) {
       if (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'})
         res.end('Error: ' + err.message)
