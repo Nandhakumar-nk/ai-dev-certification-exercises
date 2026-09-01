@@ -1,12 +1,117 @@
-// TODO: This app has no authentication! Any user can create, edit, or delete any post.
+require("dotenv").config();
 
 const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
 const { PrismaClient } = require("@prisma/client");
+const { requireAuth } = require("./middleware/auth");
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable must be set");
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const prisma = new PrismaClient();
 const app = express();
 
 app.use(express.json());
+
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  skip: () => process.env.NODE_ENV === "test",
+});
+
+function signToken(user) {
+  return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+  });
+}
+
+// Register a new user
+app.post("/api/auth/register", authRateLimiter, async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: "Email, password, and name are required" });
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await prisma.user.create({
+      data: { email, password: passwordHash, name },
+    });
+
+    const token = signToken(user);
+    res.status(201).json({
+      token,
+      user: { id: user.id, email: user.email, name: user.name },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to register user" });
+  }
+});
+
+// Log in an existing user
+app.post("/api/auth/login", authRateLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password);
+    if (!passwordMatches) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const token = signToken(user);
+    res.status(200).json({
+      token,
+      user: { id: user.id, email: user.email, name: user.name },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to log in" });
+  }
+});
+
+// Log out (blacklist the presented token)
+app.post("/api/auth/logout", requireAuth, async (req, res) => {
+  try {
+    const decoded = jwt.decode(req.token);
+    await prisma.blacklistedToken.create({
+      data: {
+        token: req.token,
+        expiresAt: new Date(decoded.exp * 1000),
+      },
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to log out" });
+  }
+});
 
 // Health check
 app.get("/health", (req, res) => {
