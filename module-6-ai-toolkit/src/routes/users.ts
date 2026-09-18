@@ -4,6 +4,11 @@ import { generateId, isValidEmail } from "../utils/helpers";
 
 const router = Router();
 
+function toPublicUser(user: User): Omit<User, "password"> {
+  const { password, ...publicUser } = user;
+  return publicUser;
+}
+
 // In-memory user storage
 let users: User[] = [
   {
@@ -25,14 +30,11 @@ let users: User[] = [
 ];
 
 // GET /api/users - List all users
-// SECURITY ISSUE: Returns password field in response!
-// Should strip sensitive fields before sending
 router.get("/", (_req: Request, res: Response) => {
-  res.json({ users, total: users.length });
+  res.json({ users: users.map(toPublicUser), total: users.length });
 });
 
 // GET /api/users/:id - Get a single user
-// SECURITY ISSUE: Same problem - returns password
 router.get("/:id", (req: Request, res: Response) => {
   const user = users.find((u) => u.id === req.params.id);
 
@@ -41,7 +43,7 @@ router.get("/:id", (req: Request, res: Response) => {
     return;
   }
 
-  res.json({ user });
+  res.json({ user: toPublicUser(user) });
 });
 
 // POST /api/users - Create a new user
@@ -72,8 +74,7 @@ router.post("/", (req: Request, res: Response) => {
 
   users.push(newUser);
 
-  // Still returns password in the response!
-  res.status(201).json({ user: newUser });
+  res.status(201).json({ user: toPublicUser(newUser) });
 });
 
 // Export for use by tasks route (N+1 simulation)
