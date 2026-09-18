@@ -1,6 +1,7 @@
 import express from "express";
 import taskRoutes from "./routes/tasks";
 import userRoutes from "./routes/users";
+import { requireApiKey } from "./middleware/auth";
 
 const app = express();
 const PORT = 3458;
@@ -9,8 +10,8 @@ const PORT = 3458;
 app.use(express.json());
 
 // Routes
-app.use("/api/tasks", taskRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/tasks", requireApiKey, taskRoutes);
+app.use("/api/users", requireApiKey, userRoutes);
 
 // Health check
 app.get("/health", (_req, res) => {
