@@ -11,5 +11,22 @@
         ]
       }
     ]
+  },
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "github",
+    "postgres"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__filesystem__read_file",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__search_files",
+      "mcp__github__get_file_contents",
+      "mcp__github__list_issues",
+      "mcp__postgres__query",
+      "Bash(npm test)",
+      "Bash(npm run lint)"
+    ]
   }
 }
