@@ -18,6 +18,10 @@
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "system-monitor": {
+      "command": "npx",
+      "args": ["tsx", "mcp/system-monitor.ts"]
     }
   }
 }
