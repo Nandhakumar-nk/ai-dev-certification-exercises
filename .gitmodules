@@ -1,0 +1,3 @@
+[submodule "module-5-blog-auth"]
+	path = module-5-blog-auth
+	url = git@github.com:Nandhakumar-nk/module-5-blog-auth.git
