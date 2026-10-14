@@ -4,3 +4,6 @@
 [submodule "module-1-taskmaster"]
 	path = module-1-taskmaster
 	url = git@github.com:Nandhakumar-nk/taskmaster.git
+[submodule "module-6-ai-toolkit"]
+	path = module-6-ai-toolkit
+	url = git@github.com:Nandhakumar-nk/module-6-ai-toolkit.git
