@@ -1,3 +1,6 @@
 [submodule "module-5-blog-auth"]
 	path = module-5-blog-auth
 	url = git@github.com:Nandhakumar-nk/module-5-blog-auth.git
+[submodule "module-1-taskmaster"]
+	path = module-1-taskmaster
+	url = git@github.com:Nandhakumar-nk/taskmaster.git
